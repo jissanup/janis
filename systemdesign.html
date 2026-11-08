@@ -1,0 +1,605 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How a Web Application Works: System Design for Beginners</title>
+<style>
+  :root{
+    --user:#212529;    --user-bg:#ffffff;
+    --create:#0b7285;  --create-bg:#e3fafc;   /* Create: code, languages, tools */
+    --build:#3b5bdb;   --build-bg:#edf2ff;    /* Build & Deliver: CI/CD          */
+    --run:#1864ab;     --run-bg:#e7f5ff;      /* Run: servers, containers, K8s   */
+    --host:#795548;    --host-bg:#f8f1ed;     /* Host: machines, cloud, DC       */
+    --net:#6741d9;     --net-bg:#f3f0ff;      /* Network & Traffic               */
+    --protect:#c92a2a; --protect-bg:#fff5f5;  /* Protect: security               */
+    --data:#e67700;    --data-bg:#fff4e6;     /* Data: DB, cache, queue          */
+    --maintain:#2b8a3e;--maintain-bg:#ebfbee; /* Maintain: monitoring            */
+    --fw:#343a40;      --fw-bg:#f1f3f5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:#212529;background:#f8f9fa;line-height:1.55}
+  header{background:linear-gradient(120deg,#0b7285,#1864ab,#6741d9);color:#fff;padding:30px 40px}
+  header h1{margin:0 0 6px;font-size:30px}
+  header p{margin:0;opacity:.92;font-size:16px}
+  nav{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #dee2e6;padding:8px 30px;display:flex;flex-wrap:wrap;gap:6px}
+  nav a{font-size:12px;text-decoration:none;color:#1864ab;background:#e7f5ff;padding:4px 10px;border-radius:14px}
+  nav a:hover{background:#1864ab;color:#fff}
+  main{max-width:1200px;margin:0 auto;padding:20px 26px 60px}
+  section{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 26px;margin:22px 0}
+  h2{margin-top:0;color:#1864ab;border-bottom:2px solid #e9ecef;padding-bottom:8px}
+  h3{color:#343a40;margin:18px 0 8px}
+  p.lead{font-size:15px;color:#495057;margin-top:0}
+
+  .user{--c:var(--user);--bg:var(--user-bg)}
+  .create{--c:var(--create);--bg:var(--create-bg)}
+  .build{--c:var(--build);--bg:var(--build-bg)}
+  .run{--c:var(--run);--bg:var(--run-bg)}
+  .host{--c:var(--host);--bg:var(--host-bg)}
+  .net{--c:var(--net);--bg:var(--net-bg)}
+  .protect{--c:var(--protect);--bg:var(--protect-bg)}
+  .data{--c:var(--data);--bg:var(--data-bg)}
+  .maintain{--c:var(--maintain);--bg:var(--maintain-bg)}
+  .fwc{--c:var(--fw);--bg:var(--fw-bg)}
+
+  .box{border:2px solid var(--c);background:var(--bg);border-radius:10px;padding:9px 13px;text-align:center;min-width:130px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .box .t{font-weight:700;color:var(--c)}
+  .box .s{font-size:12px;color:#495057}
+  .box .tag{display:inline-block;margin-top:4px;font-size:10px;font-weight:700;color:#fff;background:var(--c);padding:1px 8px;border-radius:10px}
+  .box.dash{border-style:dashed}
+  .row{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .col{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .arrow{text-align:center;color:#868e96;font-size:13px;margin:3px 0}
+  .arrow b{display:block;font-size:20px;line-height:1;color:#adb5bd}
+  .ha{font-size:22px;color:#adb5bd}
+
+  .zone{border:2px dashed var(--c);background:var(--bg);border-radius:12px;padding:22px 14px 14px;position:relative;margin:16px 0}
+  .zone>.zl{position:absolute;top:-12px;left:14px;background:#fff;padding:0 8px;font-weight:700;color:var(--c);font-size:13px;border-radius:6px}
+  .zone.plain{--c:#868e96;--bg:#f8f9fa}
+  .fw{background:repeating-linear-gradient(45deg,#343a40,#343a40 10px,#495057 10px,#495057 20px);color:#fff;text-align:center;padding:7px;border-radius:6px;font-size:12px;font-weight:600;margin:10px 0}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .card{border-top:6px solid var(--c);background:var(--bg);border-radius:10px;padding:14px}
+  .card h4{margin:0 0 6px;color:var(--c);font-size:17px}
+  .card p{margin:0;font-size:14px}
+
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .chip{padding:8px 10px;border-radius:8px;background:var(--bg);border-left:6px solid var(--c);font-size:13px}
+  .chip b{color:var(--c)}
+
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+  th,td{border:1px solid #dee2e6;padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f1f3f5}
+  tr.lay td:first-child{border-left:6px solid var(--c);font-weight:600;color:var(--c);background:var(--bg)}
+  tr.grp td{background:var(--c);color:#fff;font-weight:700;font-size:15px}
+  td.ow{font-weight:700;white-space:nowrap}
+  td.ex{font-size:13px;color:#343a40}
+
+  ol.steps{list-style:none;padding:0;counter-reset:s}
+  ol.steps li{counter-increment:s;border-left:6px solid var(--c);background:var(--bg);margin:6px 0;padding:8px 12px 8px 46px;border-radius:6px;position:relative}
+  ol.steps li::before{content:counter(s);position:absolute;left:10px;top:7px;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:700;text-align:center;line-height:26px;font-size:13px}
+  ol.steps li b{color:var(--c)}
+
+  .tip{background:#e7f5ff;border-left:5px solid #1864ab;padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14px}
+  .warn{background:#fff9db;border-left:5px solid #f08c00;padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:950px){.grid2,.grid4{grid-template-columns:1fr}}
+  code{background:#f1f3f5;padding:2px 6px;border-radius:4px;font-size:13px}
+  details{border:1px solid #dee2e6;border-radius:8px;padding:8px 12px;margin:8px 0;background:#fcfcfd}
+  summary{cursor:pointer;font-weight:600;color:#1864ab}
+  footer{text-align:center;color:#868e96;font-size:12px;padding:20px}
+  @media print{nav{display:none}body{background:#fff}section{box-shadow:none;border:1px solid #dee2e6;page-break-inside:avoid}details{display:block}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌐 How a Web Application Works</h1>
+  <p>System design for beginners: everything needed to <b>create, run, host, protect and maintain</b> a web application</p>
+</header>
+
+<nav>
+  <a href="#legend">Colors</a>
+  <a href="#analogy">1. Restaurant Analogy</a>
+  <a href="#stages">2. Life of a Web App</a>
+  <a href="#glossary">3. Building Blocks</a>
+  <a href="#simple">4. Simplest Architecture</a>
+  <a href="#grow">5. How Apps Grow</a>
+  <a href="#full">6. Full Architecture</a>
+  <a href="#journey">7. Request Journey</a>
+  <a href="#render">8. Browser Rendering</a>
+  <a href="#spa">9. SPA vs MPA</a>
+  <a href="#queue">10. Background Jobs</a>
+  <a href="#security">11. Security Layers</a>
+  <a href="#devprod">12. Dev to Prod</a>
+  <a href="#maintain">13. Maintain</a>
+  <a href="#concepts">14. Key Concepts</a>
+  <a href="#quiz">15. Quiz</a>
+</nav>
+
+<main>
+
+<!-- LEGEND -->
+<section id="legend">
+  <h2>🎨 Color Guide</h2>
+  <p class="lead">Every box, table row and diagram uses the color of its <b>category</b>. Learn the colors once and every diagram becomes easier to read.</p>
+  <div class="legend">
+    <div class="chip user"><b>⬛ User</b>: the person and their browser</div>
+    <div class="chip create"><b>🩵 Create</b>: languages, frameworks, coding tools</div>
+    <div class="chip build"><b>🔷 Build &amp; Deliver</b>: CI/CD, containers</div>
+    <div class="chip run"><b>🟦 Run</b>: where the app executes</div>
+    <div class="chip host"><b>🟫 Host</b>: machines, cloud, datacenters</div>
+    <div class="chip net"><b>🟪 Network &amp; Traffic</b>: DNS, load balancers</div>
+    <div class="chip protect"><b>🟥 Protect</b>: security</div>
+    <div class="chip data"><b>🟧 Data</b>: databases, cache, queues</div>
+    <div class="chip maintain"><b>🟩 Maintain</b>: monitoring and logs</div>
+    <div class="chip fwc"><b>▨ Firewall</b>: striped bars between zones</div>
+  </div>
+</section>
+
+<!-- 1. ANALOGY -->
+<section id="analogy">
+  <h2>1. 🍽️ A Web App Is Like a Restaurant</h2>
+  <p class="lead">Before learning technical words, picture a restaurant. Every part of a web application has a match.</p>
+  <table>
+    <tr><th>Restaurant</th><th>Web Application</th><th>Job</th></tr>
+    <tr class="lay user"><td>Customer</td><td>User + Browser</td><td>Asks for something</td></tr>
+    <tr class="lay net"><td>Street address</td><td>Domain name + DNS</td><td>Helps customers find the place</td></tr>
+    <tr class="lay protect"><td>Security guard</td><td>Firewall / WAF</td><td>Stops troublemakers at the door</td></tr>
+    <tr class="lay net"><td>Host at the entrance</td><td>Load balancer</td><td>Seats customers at a free table</td></tr>
+    <tr class="lay create"><td>Menu and dining room</td><td>Frontend</td><td>What the customer sees and touches</td></tr>
+    <tr class="lay create"><td>Waiter</td><td>API</td><td>Carries orders to the kitchen and food back</td></tr>
+    <tr class="lay run"><td>Kitchen and chef</td><td>Backend</td><td>Does the real work</td></tr>
+    <tr class="lay data"><td>Pantry / store room</td><td>Database</td><td>Stores ingredients (data) permanently</td></tr>
+    <tr class="lay data"><td>Ready-to-serve counter</td><td>Cache</td><td>Keeps popular items ready for speed</td></tr>
+    <tr class="lay data"><td>Order ticket rail</td><td>Message queue</td><td>Holds jobs to be done later, in order</td></tr>
+    <tr class="lay host"><td>The building</td><td>Server / Cloud / Datacenter</td><td>Where everything physically lives</td></tr>
+    <tr class="lay maintain"><td>Manager and CCTV</td><td>Monitoring + Logs</td><td>Watches everything and records what happened</td></tr>
+  </table>
+</section>
+
+<!-- 2. STAGES -->
+<section id="stages">
+  <h2>2. 🔄 The Life of a Web Application</h2>
+  <p class="lead">Every web application goes through these stages. Each one needs its own tools.</p>
+  <div class="row">
+    <div class="box create"><div class="t">✏️ CREATE</div><div class="s">Plan and write code</div></div><div class="ha">→</div>
+    <div class="box build"><div class="t">📦 BUILD</div><div class="s">Test and package</div></div><div class="ha">→</div>
+    <div class="box host"><div class="t">🏢 HOST</div><div class="s">Get machines</div></div><div class="ha">→</div>
+    <div class="box run"><div class="t">▶️ RUN</div><div class="s">Start the app</div></div><div class="ha">→</div>
+    <div class="box protect"><div class="t">🛡️ PROTECT</div><div class="s">Keep it safe</div></div><div class="ha">→</div>
+    <div class="box maintain"><div class="t">🩺 MAINTAIN</div><div class="s">Watch and fix</div></div>
+  </div>
+  <div class="arrow"><b>↺</b>The cycle repeats with every new feature or bug fix</div>
+</section>
+
+<!-- 3. GLOSSARY -->
+<section id="glossary">
+  <h2>3. 🧱 The Building Blocks of a Web Application</h2>
+  <p class="lead">Each building block has a <b>one-word nickname</b>, a simple explanation and popular real-world examples.</p>
+  <table>
+    <tr><th style="width:19%">Component</th><th style="width:12%">One Word</th><th>What It Is (Simple)</th><th style="width:28%">Examples</th></tr>
+
+    <tr class="grp create" style="--c:var(--create)"><td colspan="4">✏️ CREATE: Write the application</td></tr>
+    <tr class="lay create"><td>Frontend Languages</td><td class="ow">Look</td><td>The basic languages browsers understand. HTML = structure, CSS = style, JavaScript = behavior.</td><td class="ex">HTML, CSS, JavaScript, TypeScript</td></tr>
+    <tr class="lay create"><td>Frontend Framework</td><td class="ow">Face</td><td>A toolkit that makes building screens (UI) faster and organized.</td><td class="ex">Angular, React, Vue.js, Svelte, Next.js</td></tr>
+    <tr class="lay create"><td>Backend Language</td><td class="ow">Brain</td><td>The language used to write business logic that runs on the server.</td><td class="ex">Java, Python, JavaScript (Node.js), C#, Go, PHP</td></tr>
+    <tr class="lay create"><td>Backend Framework</td><td class="ow">Engine</td><td>A ready-made structure for building backend services and APIs quickly.</td><td class="ex">Spring Boot (Java), Django / FastAPI (Python), Express / NestJS (Node), ASP.NET Core (C#)</td></tr>
+    <tr class="lay create"><td>API</td><td class="ow">Waiter</td><td>The agreed way the frontend and backend talk to each other, usually sending JSON.</td><td class="ex">REST, GraphQL, gRPC</td></tr>
+    <tr class="lay create"><td>IDE (Code Editor)</td><td class="ow">Workshop</td><td>The software where developers write, run and debug code.</td><td class="ex">IntelliJ IDEA, VS Code, Eclipse, PyCharm</td></tr>
+    <tr class="lay create"><td>Version Control</td><td class="ow">Time Machine</td><td>Saves every change to the code, so teams can work together and undo mistakes.</td><td class="ex">Git (tool) · GitHub, GitLab, Bitbucket (hosting)</td></tr>
+    <tr class="lay create"><td>Project Tracking</td><td class="ow">To-Do Board</td><td>Tracks tasks, bugs and features, and who is working on what.</td><td class="ex">Jira, Azure Boards, Trello, Asana</td></tr>
+    <tr class="lay create"><td>Testing Tools</td><td class="ow">Inspector</td><td>Automatically checks that the code works as expected.</td><td class="ex">JUnit, Jest, Selenium, Cypress, Playwright</td></tr>
+
+    <tr class="grp build" style="--c:var(--build)"><td colspan="4">📦 BUILD &amp; DELIVER: Package and ship the application</td></tr>
+    <tr class="lay build"><td>Build Tool</td><td class="ow">Packer</td><td>Turns source code into a runnable package and downloads needed libraries.</td><td class="ex">Maven, Gradle, npm, Webpack</td></tr>
+    <tr class="lay build"><td>Code Quality Scanner</td><td class="ow">Grammar Check</td><td>Finds bugs, bad practices and security issues in code.</td><td class="ex">SonarQube, Snyk, Checkmarx</td></tr>
+    <tr class="lay build"><td>CI/CD Pipeline</td><td class="ow">Assembly Line</td><td>Automatically builds, tests and deploys code every time someone pushes a change.</td><td class="ex">GitHub Actions, Jenkins, GitLab CI, Azure DevOps</td></tr>
+    <tr class="lay build"><td>Container</td><td class="ow">Lunchbox</td><td>Packs the app with everything it needs, so it runs the same everywhere.</td><td class="ex">Docker, Podman</td></tr>
+    <tr class="lay build"><td>Image Registry</td><td class="ow">Warehouse</td><td>Stores ready-to-run container images.</td><td class="ex">Docker Hub, JFrog Artifactory, Harbor, AWS ECR</td></tr>
+    <tr class="lay build"><td>Deployment Tool</td><td class="ow">Delivery Truck</td><td>Takes the package and installs it on the servers or cluster.</td><td class="ex">kubectl, Helm, ArgoCD, Ansible</td></tr>
+
+    <tr class="grp host" style="--c:var(--host)"><td colspan="4">🏢 HOST: Where the application lives</td></tr>
+    <tr class="lay host"><td>Server</td><td class="ow">Computer</td><td>A powerful computer that runs 24/7 and serves users over the network.</td><td class="ex">Physical servers from Dell, HPE, Lenovo</td></tr>
+    <tr class="lay host"><td>Virtual Machine (VM)</td><td class="ow">Room</td><td>One physical server split into many smaller "virtual" computers.</td><td class="ex">VMware vSphere, Hyper-V, KVM</td></tr>
+    <tr class="lay host"><td>Operating System</td><td class="ow">Foundation</td><td>The base software every server runs on.</td><td class="ex">Linux (RHEL, Ubuntu), Windows Server</td></tr>
+    <tr class="lay host"><td>Datacenter (On-Premises)</td><td class="ow">Own Building</td><td>A company-owned building full of servers, power and cooling.</td><td class="ex">Company-owned or rented (colocation) facilities</td></tr>
+    <tr class="lay host"><td>Cloud</td><td class="ow">Rented Building</td><td>Rent servers and services over the internet and pay for what you use.</td><td class="ex">AWS, Microsoft Azure, Google Cloud, Oracle Cloud</td></tr>
+    <tr class="lay host"><td>File / Object Storage</td><td class="ow">Locker</td><td>Stores files such as images, videos, documents and backups.</td><td class="ex">AWS S3, Azure Blob Storage, NetApp, MinIO</td></tr>
+
+    <tr class="grp run" style="--c:var(--run)"><td colspan="4">▶️ RUN: Execute the application</td></tr>
+    <tr class="lay run"><td>Web Server</td><td class="ow">Shopkeeper</td><td>Hands out website files (HTML, CSS, JS, images) to browsers.</td><td class="ex">NGINX, Apache httpd, Microsoft IIS</td></tr>
+    <tr class="lay run"><td>Application Server</td><td class="ow">Kitchen</td><td>Runs backend code. (Spring Boot has one built in.)</td><td class="ex">Tomcat, JBoss/WildFly, WebLogic</td></tr>
+    <tr class="lay run"><td>Container Orchestrator</td><td class="ow">Factory Manager</td><td>Runs many containers, restarts crashed ones and adds more when traffic grows.</td><td class="ex">Kubernetes, OpenShift, AWS EKS, Azure AKS, Google GKE</td></tr>
+    <tr class="lay run"><td>Platform as a Service (PaaS)</td><td class="ow">Hotel</td><td>Upload your code and the platform handles servers for you.</td><td class="ex">Cloud Foundry (Tanzu), Heroku, Azure App Service, Google App Engine</td></tr>
+    <tr class="lay run"><td>Serverless</td><td class="ow">Taxi</td><td>Code runs only when needed. No servers to manage, pay per use.</td><td class="ex">AWS Lambda, Azure Functions, Google Cloud Functions</td></tr>
+
+    <tr class="grp net" style="--c:var(--net)"><td colspan="4">🟪 NETWORK &amp; TRAFFIC: Get users to the application</td></tr>
+    <tr class="lay net"><td>Domain Name</td><td class="ow">Name Board</td><td>The easy-to-remember name of a website, such as <code>myshop.com</code>.</td><td class="ex">Bought from GoDaddy, Namecheap, Google Domains</td></tr>
+    <tr class="lay net"><td>DNS</td><td class="ow">Phonebook</td><td>Converts a domain name into an IP address computers understand.</td><td class="ex">AWS Route 53, Cloudflare DNS, Akamai Edge DNS, Infoblox</td></tr>
+    <tr class="lay net"><td>CDN</td><td class="ow">Local Shops</td><td>Keeps copies of files on servers around the world, close to users, for speed.</td><td class="ex">Akamai, Cloudflare, AWS CloudFront, Fastly</td></tr>
+    <tr class="lay net"><td>Global Load Balancer</td><td class="ow">Traffic Police</td><td>Decides <b>which datacenter</b> or region a user goes to.</td><td class="ex">F5 BIG-IP DNS (GTM), AWS Route 53, Azure Traffic Manager</td></tr>
+    <tr class="lay net"><td>Load Balancer</td><td class="ow">Front Desk</td><td>Spreads users across several servers so none gets overloaded. Skips broken servers.</td><td class="ex">F5 LTM, HAProxy, Citrix NetScaler, AWS ALB/NLB</td></tr>
+    <tr class="lay net"><td>Reverse Proxy</td><td class="ow">Receptionist</td><td>Receives requests and forwards them to the right backend, hiding internal servers.</td><td class="ex">NGINX, Apache httpd, HAProxy, Envoy, Traefik</td></tr>
+    <tr class="lay net"><td>API Gateway</td><td class="ow">Toll Booth</td><td>A single entry for all APIs. Handles login checks, limits and routing.</td><td class="ex">Kong, Apigee, AWS API Gateway, Spring Cloud Gateway</td></tr>
+    <tr class="lay net"><td>Ingress</td><td class="ow">Gatekeeper</td><td>The entry door into a Kubernetes cluster. Routes by URL path.</td><td class="ex">NGINX Ingress Controller, Traefik, OpenShift Routes</td></tr>
+
+    <tr class="grp protect" style="--c:var(--protect)"><td colspan="4">🛡️ PROTECT: Keep the application safe</td></tr>
+    <tr class="lay protect"><td>Firewall</td><td class="ow">Security Guard</td><td>Allows or blocks traffic based on where it comes from (IP) and which door (port) it uses.</td><td class="ex">Palo Alto, Fortinet, Cisco, Check Point · Cloud: AWS Security Groups, Azure NSG</td></tr>
+    <tr class="lay protect"><td>WAF (Web App Firewall)</td><td class="ow">Bag Checker</td><td>Looks <b>inside</b> web requests and blocks attacks such as SQL injection.</td><td class="ex">Akamai App &amp; API Protector, Cloudflare WAF, AWS WAF, F5 Advanced WAF, Imperva</td></tr>
+    <tr class="lay protect"><td>DDoS Protection</td><td class="ow">Flood Barrier</td><td>Absorbs huge floods of fake traffic meant to crash a website.</td><td class="ex">Akamai Prolexic, Cloudflare, AWS Shield, Azure DDoS Protection</td></tr>
+    <tr class="lay protect"><td>SSL/TLS Certificate</td><td class="ow">Padlock</td><td>Encrypts data between browser and server (the 🔒 and "https").</td><td class="ex">Let's Encrypt, DigiCert, Sectigo</td></tr>
+    <tr class="lay protect"><td>Authentication (Identity)</td><td class="ow">ID Card</td><td>Checks who the user is (login) and what they are allowed to do.</td><td class="ex">Okta, Microsoft Entra ID, Keycloak, Auth0 · Standards: OAuth2, OIDC, SAML</td></tr>
+    <tr class="lay protect"><td>Secrets Manager</td><td class="ow">Safe</td><td>Stores passwords and keys securely, never inside the code.</td><td class="ex">HashiCorp Vault, Kubernetes Secrets, AWS Secrets Manager, CyberArk</td></tr>
+
+    <tr class="grp data" style="--c:var(--data)"><td colspan="4">🟧 DATA: Store and move information</td></tr>
+    <tr class="lay data"><td>SQL Database</td><td class="ow">Spreadsheet</td><td>Stores data in tables with rows and columns. Great for structured data.</td><td class="ex">Oracle, PostgreSQL, MySQL, Microsoft SQL Server</td></tr>
+    <tr class="lay data"><td>NoSQL Database</td><td class="ow">Folder</td><td>Stores flexible data such as documents or key-value pairs. Scales easily.</td><td class="ex">MongoDB, Cassandra, DynamoDB, Couchbase</td></tr>
+    <tr class="lay data"><td>Cache</td><td class="ow">Shortcut</td><td>Keeps frequently used data in fast memory to avoid slow database trips.</td><td class="ex">Redis, Memcached, Hazelcast</td></tr>
+    <tr class="lay data"><td>Message Queue</td><td class="ow">Post Office</td><td>Holds tasks to be processed later, such as sending emails.</td><td class="ex">RabbitMQ, Apache Kafka, ActiveMQ, AWS SQS</td></tr>
+    <tr class="lay data"><td>Search Engine</td><td class="ow">Index</td><td>Makes searching large amounts of text very fast.</td><td class="ex">Elasticsearch, OpenSearch, Apache Solr</td></tr>
+    <tr class="lay data"><td>Backup &amp; Replication</td><td class="ow">Photocopy</td><td>Keeps copies of data in case of failure or disaster.</td><td class="ex">Oracle Data Guard, PostgreSQL Replication, Veeam, Commvault</td></tr>
+
+    <tr class="grp maintain" style="--c:var(--maintain)"><td colspan="4">🩺 MAINTAIN: Keep the application healthy</td></tr>
+    <tr class="lay maintain"><td>APM (Performance Monitoring)</td><td class="ow">Doctor</td><td>Watches app health and speed live and points to the cause of slowness.</td><td class="ex">Dynatrace, New Relic, AppDynamics, Datadog</td></tr>
+    <tr class="lay maintain"><td>Logging</td><td class="ow">Diary</td><td>Collects and searches log messages to find out exactly what happened.</td><td class="ex">Splunk, ELK Stack (Elasticsearch, Logstash, Kibana), Grafana Loki</td></tr>
+    <tr class="lay maintain"><td>Metrics &amp; Dashboards</td><td class="ow">Speedometer</td><td>Shows numbers like CPU, memory and requests per second as graphs.</td><td class="ex">Prometheus + Grafana, Azure Monitor, CloudWatch</td></tr>
+    <tr class="lay maintain"><td>Alerting &amp; Incidents</td><td class="ow">Alarm Bell</td><td>Notifies the right person when something breaks and tracks the fix.</td><td class="ex">PagerDuty, ServiceNow, Opsgenie</td></tr>
+  </table>
+  <div class="tip">💡 <b>You don't need everything on day one.</b> A small project may need only a frontend, a backend, a database and a cloud host. Large companies add the rest as users grow (see Section 5).</div>
+</section>
+
+<!-- 4. SIMPLE ARCHITECTURE -->
+<section id="simple">
+  <h2>4. 🏠 The Simplest Web Application (3-Tier Architecture)</h2>
+  <p class="lead">Almost every web app starts with these three layers.</p>
+  <div class="row">
+    <div class="box user"><div class="t">👤 Browser</div><div class="s">User</div></div><div class="ha">⇄</div>
+    <div class="box create"><div class="t">🖥️ Frontend</div><div class="s">Angular / React</div><div class="tag">TIER 1: FACE</div></div><div class="ha">⇄ API (JSON) ⇄</div>
+    <div class="box run"><div class="t">⚙️ Backend</div><div class="s">Spring Boot / Node.js</div><div class="tag">TIER 2: BRAIN</div></div><div class="ha">⇄</div>
+    <div class="box data"><div class="t">🗄️ Database</div><div class="s">PostgreSQL / Oracle</div><div class="tag">TIER 3: MEMORY</div></div>
+  </div>
+  <div class="cards" style="margin-top:16px">
+    <div class="card create"><h4>Presentation Tier</h4><p>What the user sees. Runs in the browser.</p></div>
+    <div class="card run"><h4>Logic Tier</h4><p>Rules and calculations. Runs on a server.</p></div>
+    <div class="card data"><h4>Data Tier</h4><p>Saves information permanently.</p></div>
+  </div>
+</section>
+
+<!-- 5. HOW APPS GROW -->
+<section id="grow">
+  <h2>5. 📈 How a Web Application Grows</h2>
+  <p class="lead">System design is about solving new problems as more people use the app.</p>
+  <div class="grid4">
+    <div class="zone plain"><span class="zl">LEVEL 1: Startup</span>
+      <div class="col">
+        <div class="box user"><div class="t">Users</div><div class="s">10s</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="box host"><div class="t">One Server</div><div class="s">Frontend + Backend + DB</div></div>
+      </div>
+      <p style="font-size:13px">⚠️ If it crashes, everything stops.</p>
+    </div>
+    <div class="zone plain"><span class="zl">LEVEL 2: Separate</span>
+      <div class="col">
+        <div class="box user"><div class="t">Users</div><div class="s">1000s</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="box run"><div class="t">App Server</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="box data"><div class="t">DB Server</div></div>
+      </div>
+      <p style="font-size:13px">✅ Each can grow on its own.</p>
+    </div>
+    <div class="zone plain"><span class="zl">LEVEL 3: Scale Out</span>
+      <div class="col">
+        <div class="box net"><div class="t">Load Balancer</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="row"><div class="box run" style="min-width:60px"><div class="t">App 1</div></div><div class="box run" style="min-width:60px"><div class="t">App 2</div></div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="row"><div class="box data" style="min-width:60px"><div class="t">Cache</div></div><div class="box data" style="min-width:60px"><div class="t">DB + Copy</div></div></div>
+      </div>
+      <p style="font-size:13px">✅ One server can fail safely.</p>
+    </div>
+    <div class="zone plain"><span class="zl">LEVEL 4: Enterprise</span>
+      <div class="col">
+        <div class="box protect"><div class="t">CDN + WAF</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="box net"><div class="t">Global LB</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="row"><div class="box host" style="min-width:60px"><div class="t">DC 1</div></div><div class="box host" style="min-width:60px"><div class="t">DC 2</div></div></div>
+        <div class="s" style="font-size:12px">Kubernetes · Queue · Monitoring</div>
+      </div>
+      <p style="font-size:13px">✅ A whole datacenter can fail safely.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. FULL ARCHITECTURE -->
+<section id="full">
+  <h2>6. 🏗️ Full Enterprise Architecture</h2>
+  <p class="lead">This is what a large, real-world web application typically looks like. Read it top to bottom.</p>
+
+  <div class="col">
+    <div class="box user"><div class="t">👤 User (Browser / Mobile)</div><div class="s">Types https://myshop.com</div></div>
+    <div class="arrow"><b>▼</b>"Where is myshop.com?"</div>
+    <div class="box net"><div class="t">DNS</div><div class="s">Returns the address</div><div class="tag">PHONEBOOK</div></div>
+    <div class="arrow"><b>▼</b></div>
+    <div class="box protect"><div class="t">Edge Platform: CDN + WAF + DDoS</div><div class="s">e.g., Akamai, Cloudflare</div><div class="tag">CITY GATE</div></div>
+    <div class="arrow"><b>▼</b></div>
+    <div class="box net"><div class="t">Global Load Balancer</div><div class="s">Picks the best datacenter</div><div class="tag">TRAFFIC POLICE</div></div>
+    <div class="arrow"><b>▼</b>Datacenter 1 or Datacenter 2 (same setup in both)</div>
+  </div>
+
+  <div class="zone host"><span class="zl">🏢 ONE DATACENTER / CLOUD REGION</span>
+    <div class="fw">▨ FIREWALL: Internet → DMZ (only allowed traffic on port 443)</div>
+    <div class="zone plain"><span class="zl">DMZ (Lobby: faces the outside)</span>
+      <div class="col">
+        <div class="box net"><div class="t">Load Balancer</div><div class="s">Health checks · SSL</div><div class="tag">FRONT DESK</div></div>
+        <div class="arrow"><b>▼</b></div>
+        <div class="row">
+          <div class="box net"><div class="t">Reverse Proxy 1</div><div class="s">NGINX</div></div>
+          <div class="box net"><div class="t">Reverse Proxy 2</div><div class="s">NGINX</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fw">▨ FIREWALL: DMZ → App Zone</div>
+    <div class="zone run"><span class="zl">APP ZONE (Office): Kubernetes Cluster</span>
+      <div class="col"><div class="box net"><div class="t">Ingress</div><div class="tag">GATEKEEPER</div></div></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="col">
+          <div class="arrow"><b>▼</b><code>/</code> screens</div>
+          <div class="row"><div class="box create"><div class="t">Frontend Pod</div><div class="s">Angular in NGINX</div></div><div class="box create"><div class="t">Frontend Pod</div><div class="s">copy</div></div></div>
+        </div>
+        <div class="col">
+          <div class="arrow"><b>▼</b><code>/api</code> data</div>
+          <div class="row"><div class="box run"><div class="t">Backend Pod</div><div class="s">Spring Boot</div></div><div class="box run"><div class="t">Backend Pod</div><div class="s">copy</div></div></div>
+          <div class="box run dash"><div class="t">Worker Pod</div><div class="s">background jobs</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fw">▨ FIREWALL: App Zone → Data Zone</div>
+    <div class="zone data"><span class="zl">DATA ZONE (Vault: most protected)</span>
+      <div class="row">
+        <div class="box data"><div class="t">Database</div><div class="s">Primary + Replica</div></div>
+        <div class="box data"><div class="t">Cache</div><div class="s">Redis</div></div>
+        <div class="box data"><div class="t">Message Queue</div><div class="s">RabbitMQ / Kafka</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="box maintain"><div class="t">🩺 Monitoring</div><div class="s">Dynatrace · watches every layer</div></div>
+    <div class="box maintain"><div class="t">📜 Logging</div><div class="s">Splunk · collects every log</div></div>
+    <div class="box protect"><div class="t">🔑 Identity</div><div class="s">Okta / Entra ID · user login</div></div>
+  </div>
+  <div class="tip">💡 <b>Why two datacenters?</b> If a fire, power cut or network failure hits one datacenter, users are sent to the other one automatically.</div>
+</section>
+
+<!-- 7. REQUEST JOURNEY -->
+<section id="journey">
+  <h2>7. 🚀 The Journey of One Request</h2>
+  <p class="lead">What happens in about one second after a user clicks "My Orders".</p>
+  <ol class="steps">
+    <li class="user"><b>Browser:</b> The user clicks a link or types a URL.</li>
+    <li class="net"><b>DNS:</b> Finds the IP address for the domain name.</li>
+    <li class="protect"><b>Edge (CDN + WAF):</b> Serves cached files if it has them, and blocks attacks.</li>
+    <li class="net"><b>Global Load Balancer:</b> Chooses the closest or healthiest datacenter.</li>
+    <li class="fwc"><b>Firewall:</b> Lets only allowed traffic into the network.</li>
+    <li class="net"><b>Load Balancer:</b> Picks a healthy reverse proxy server.</li>
+    <li class="net"><b>Reverse Proxy:</b> Forwards the request to the Kubernetes cluster.</li>
+    <li class="net"><b>Ingress:</b> Sends screen requests to the frontend and <code>/api</code> requests to the backend.</li>
+    <li class="run"><b>Backend:</b> Checks the user's login, runs business rules.</li>
+    <li class="data"><b>Cache / Database:</b> Checks the cache first, then the database if needed.</li>
+    <li class="data"><b>Queue (optional):</b> Drops slow tasks, like "send confirmation email", in the queue.</li>
+    <li class="user"><b>Response:</b> JSON travels back the same way, and the browser shows it.</li>
+  </ol>
+</section>
+
+<!-- 8. BROWSER RENDERING -->
+<section id="render">
+  <h2>8. 🖼️ How a Web Page Renders in the Browser</h2>
+
+  <h3>Part A: Getting the files</h3>
+  <div class="row">
+    <div class="box user"><div class="t">1. Type URL</div></div><div class="ha">→</div>
+    <div class="box net"><div class="t">2. DNS Lookup</div><div class="s">name → IP</div></div><div class="ha">→</div>
+    <div class="box protect"><div class="t">3. Secure Handshake</div><div class="s">TCP + TLS 🔒</div></div><div class="ha">→</div>
+    <div class="box net"><div class="t">4. HTTP Request</div><div class="s">GET /</div></div><div class="ha">→</div>
+    <div class="box run"><div class="t">5. Server Responds</div><div class="s">HTML file</div></div>
+  </div>
+
+  <h3>Part B: Drawing the page (inside the browser)</h3>
+  <div class="row">
+    <div class="col">
+      <div class="box create"><div class="t">HTML</div><div class="s">structure</div></div>
+      <div class="arrow"><b>▼</b>parse</div>
+      <div class="box create"><div class="t">DOM</div><div class="s">tree of elements</div></div>
+    </div>
+    <div class="ha">+</div>
+    <div class="col">
+      <div class="box create"><div class="t">CSS</div><div class="s">style</div></div>
+      <div class="arrow"><b>▼</b>parse</div>
+      <div class="box create"><div class="t">CSSOM</div><div class="s">tree of styles</div></div>
+    </div>
+    <div class="ha">→</div>
+    <div class="box run"><div class="t">Render Tree</div><div class="s">what to show</div></div><div class="ha">→</div>
+    <div class="box run"><div class="t">Layout</div><div class="s">where and how big</div></div><div class="ha">→</div>
+    <div class="box run"><div class="t">Paint</div><div class="s">colors and pixels</div></div><div class="ha">→</div>
+    <div class="box maintain"><div class="t">🖥️ Screen</div><div class="s">user sees page</div></div>
+  </div>
+  <div class="arrow"><b>↺</b><b style="font-size:13px;color:#0b7285;display:inline">JavaScript</b> runs, can change the DOM, and the browser redraws only the changed parts</div>
+
+  <h3>Part C: Loading real data (Angular / React apps)</h3>
+  <div class="row">
+    <div class="box create"><div class="t">6. Page Frame Shows</div><div class="s">menus, empty tables</div></div><div class="ha">→</div>
+    <div class="box create"><div class="t">7. JS Calls API</div><div class="s">GET /api/orders</div></div><div class="ha">→</div>
+    <div class="box run"><div class="t">8. Backend</div><div class="s">reads database</div></div><div class="ha">→</div>
+    <div class="box data"><div class="t">9. JSON Returns</div><div class="s">{ "orders": [...] }</div></div><div class="ha">→</div>
+    <div class="box maintain"><div class="t">10. Page Updates</div><div class="s">real data appears</div></div>
+  </div>
+  <div class="tip">💡 Press <b>F12 → Network tab</b> in any browser and reload a page. You can watch every one of these requests happen live. Great classroom demo!</div>
+</section>
+
+<!-- 9. SPA vs MPA -->
+<section id="spa">
+  <h2>9. 📄 Two Ways to Build Web Pages: SPA vs MPA</h2>
+  <div class="grid2">
+    <div class="card create"><h4>Single Page Application (SPA)</h4>
+      <p>The page loads <b>once</b>. After that, only data (JSON) is fetched, and JavaScript updates the screen.</p>
+      <p><b>Feels like:</b> a mobile app, fast and smooth.<br><b>Examples:</b> Angular, React, Vue apps. Gmail, Trello.</p></div>
+    <div class="card run"><h4>Multi Page Application (MPA)</h4>
+      <p>Every click asks the server for a <b>whole new page</b>. The browser reloads each time.</p>
+      <p><b>Feels like:</b> a classic website.<br><b>Examples:</b> JSP, PHP, Django templates. Wikipedia, many blogs.</p></div>
+  </div>
+  <div class="tip">There is also <b>Server-Side Rendering (SSR)</b>, which mixes both: the first page arrives ready-made for speed and search engines, then it behaves like an SPA. Examples: Next.js, Angular SSR, Nuxt.</div>
+</section>
+
+<!-- 10. QUEUE -->
+<section id="queue">
+  <h2>10. 📬 Background Jobs with a Message Queue</h2>
+  <p class="lead">Some work is slow (sending emails, creating reports). Instead of making the user wait, the app drops a note in a queue and replies immediately.</p>
+  <div class="row">
+    <div class="box user"><div class="t">User clicks "Place Order"</div></div><div class="ha">→</div>
+    <div class="box run"><div class="t">Backend (Producer)</div><div class="s">saves order, sends message</div><div class="tag">SENDER</div></div><div class="ha">→</div>
+    <div class="box data"><div class="t">Message Queue</div><div class="s">holds "send email" job</div><div class="tag">POST OFFICE</div></div><div class="ha">→</div>
+    <div class="box run dash"><div class="t">Worker (Consumer)</div><div class="s">sends the email later</div><div class="tag">RECEIVER</div></div>
+  </div>
+  <div class="arrow"><b>↓</b>The user immediately sees "Order placed!" without waiting for the email.</div>
+</section>
+
+<!-- 11. SECURITY -->
+<section id="security">
+  <h2>11. 🛡️ Security Layers (Defense in Depth)</h2>
+  <p class="lead">Like a castle with walls, guards and locked rooms, each layer catches what the previous one missed.</p>
+  <div class="col">
+    <div class="box protect" style="width:90%"><div class="t">Layer 1: DDoS Protection + WAF</div><div class="s">Blocks floods and attacks on the internet</div></div>
+    <div class="box fwc" style="width:80%"><div class="t">Layer 2: Network Firewall</div><div class="s">Only allowed IPs and ports get in</div></div>
+    <div class="box protect" style="width:70%"><div class="t">Layer 3: HTTPS / TLS</div><div class="s">Data is encrypted while travelling</div></div>
+    <div class="box protect" style="width:60%"><div class="t">Layer 4: Authentication</div><div class="s">Only logged-in, allowed users get access</div></div>
+    <div class="box fwc" style="width:50%"><div class="t">Layer 5: Zone Firewalls</div><div class="s">DMZ → App → Data</div></div>
+    <div class="box data" style="width:40%"><div class="t">Layer 6: Secrets + Encryption</div><div class="s">Protects the data itself</div></div>
+  </div>
+  <table style="margin-top:14px">
+    <tr><th>Firewall vs WAF: what's the difference?</th><th>Firewall</th><th>WAF</th></tr>
+    <tr><td><b>Checks</b></td><td>The envelope: who sent it, which door</td><td>The letter inside: is it an attack?</td></tr>
+    <tr><td><b>Blocks</b></td><td>Unknown IPs, closed ports</td><td>SQL injection, cross-site scripting (XSS), bad bots</td></tr>
+  </table>
+</section>
+
+<!-- 12. DEV TO PROD -->
+<section id="devprod">
+  <h2>12. 🛠️ From Developer Laptop to Production</h2>
+  <h3>The Pipeline</h3>
+  <div class="row">
+    <div class="box create"><div class="t">1. Plan</div><div class="s">Jira ticket</div></div><div class="ha">→</div>
+    <div class="box create"><div class="t">2. Code</div><div class="s">IntelliJ / VS Code</div></div><div class="ha">→</div>
+    <div class="box create"><div class="t">3. Commit</div><div class="s">Git → GitHub</div></div><div class="ha">→</div>
+    <div class="box create"><div class="t">4. Review</div><div class="s">Pull Request</div></div><div class="ha">→</div>
+    <div class="box build"><div class="t">5. Build &amp; Test</div><div class="s">CI: Maven / npm, JUnit</div></div><div class="ha">→</div>
+    <div class="box build"><div class="t">6. Package</div><div class="s">Docker image → registry</div></div><div class="ha">→</div>
+    <div class="box build"><div class="t">7. Deploy</div><div class="s">kubectl / Helm / ArgoCD</div></div><div class="ha">→</div>
+    <div class="box maintain"><div class="t">8. Monitor</div><div class="s">Dynatrace / Splunk</div></div>
+  </div>
+
+  <h3>The Environments (Each One Is a Separate Copy of the App)</h3>
+  <div class="row">
+    <div class="box create"><div class="t">💻 DEV</div><div class="s">Developers try new code</div></div><div class="ha">→</div>
+    <div class="box build"><div class="t">🧪 QA / TEST</div><div class="s">Testers find bugs</div></div><div class="ha">→</div>
+    <div class="box net"><div class="t">👥 UAT / STAGING</div><div class="s">Business users approve; copy of prod</div></div><div class="ha">→</div>
+    <div class="box protect"><div class="t">🌍 PRODUCTION</div><div class="s">Real users, real data</div></div>
+  </div>
+  <div class="warn">⚠️ <b>Golden rules:</b> never test on production · every change goes through code review · always have a <b>rollback</b> plan · keep all copies (datacenters) on the same version.</div>
+</section>
+
+<!-- 13. MAINTAIN -->
+<section id="maintain">
+  <h2>13. 🩺 Maintaining a Live Application</h2>
+  <h3>The Three Pillars of Observability</h3>
+  <div class="cards">
+    <div class="card maintain"><h4>📊 Metrics</h4><p><b>Numbers over time.</b> CPU, memory, response time.<br><i>"How is it doing?"</i><br>Prometheus, Grafana, Dynatrace</p></div>
+    <div class="card maintain"><h4>📜 Logs</h4><p><b>Written records</b> of events and errors.<br><i>"What exactly happened?"</i><br>Splunk, ELK</p></div>
+    <div class="card maintain"><h4>🧵 Traces</h4><p><b>One request's full path</b> across all services.<br><i>"Where is it slow?"</i><br>Dynatrace, Jaeger, Zipkin</p></div>
+  </div>
+  <h3>The Incident Loop</h3>
+  <div class="row">
+    <div class="box maintain"><div class="t">👀 Monitor</div></div><div class="ha">→</div>
+    <div class="box protect"><div class="t">🔔 Alert</div><div class="s">"Page is slow!"</div></div><div class="ha">→</div>
+    <div class="box maintain"><div class="t">🔍 Investigate</div><div class="s">metrics, logs, traces</div></div><div class="ha">→</div>
+    <div class="box create"><div class="t">🔧 Fix</div><div class="s">code or config</div></div><div class="ha">→</div>
+    <div class="box build"><div class="t">🚀 Deploy</div></div><div class="ha">→</div>
+    <div class="box create"><div class="t">📝 Learn</div><div class="s">post-mortem</div></div>
+  </div>
+  <div class="tip"><b>Example:</b> Dynatrace alerts that the orders page went from 0.3 s to 5 s → Splunk logs show "database connection timeout" → the team fixes a slow SQL query → deploys → monitors again.</div>
+  <h3>Regular Maintenance Tasks</h3>
+  <ul>
+    <li>Apply <b>security patches</b> to operating systems, libraries and frameworks</li>
+    <li><b>Renew SSL certificates</b> before they expire</li>
+    <li>Test <b>backups</b> by actually restoring them</li>
+    <li>Run <b>disaster recovery drills</b> (switch to the other datacenter)</li>
+    <li>Review <b>capacity</b>: add servers before traffic grows</li>
+  </ul>
+</section>
+
+<!-- 14. KEY CONCEPTS -->
+<section id="concepts">
+  <h2>14. 💡 Key Concepts Every Student Should Know</h2>
+  <table>
+    <tr><th>Concept</th><th>Simple Meaning</th></tr>
+    <tr class="lay net"><td>IP Address</td><td>A computer's "house number" on a network, e.g., <code>142.250.1.1</code></td></tr>
+    <tr class="lay net"><td>Port</td><td>A "door number" on a computer. HTTPS uses 443, HTTP uses 80.</td></tr>
+    <tr class="lay net"><td>HTTP / HTTPS</td><td>The language browsers and servers use. HTTPS is the encrypted version.</td></tr>
+    <tr class="lay net"><td>Latency</td><td>The delay for data to travel. Lower is better.</td></tr>
+    <tr class="lay run"><td>Vertical Scaling</td><td>Make one server bigger (more CPU and memory). Has limits.</td></tr>
+    <tr class="lay run"><td>Horizontal Scaling</td><td>Add more servers. Preferred for large apps.</td></tr>
+    <tr class="lay run"><td>High Availability</td><td>The app keeps working even if some parts fail.</td></tr>
+    <tr class="lay run"><td>Health Check</td><td>A load balancer regularly asking a server "Are you alive?"</td></tr>
+    <tr class="lay host"><td>Active / Active</td><td>Two datacenters both serve users at the same time.</td></tr>
+    <tr class="lay host"><td>Active / Passive</td><td>One serves users; the other waits as a backup.</td></tr>
+    <tr class="lay data"><td>Replication</td><td>Keeping copies of data on more than one server.</td></tr>
+    <tr class="lay build"><td>Rollback</td><td>Going back to the previous working version after a bad release.</td></tr>
+    <tr class="lay protect"><td>Single Point of Failure</td><td>One part that, if it breaks, breaks everything. Good design removes these.</td></tr>
+  </table>
+</section>
+
+<!-- 15. QUIZ -->
+<section id="quiz">
+  <h2>15. ✅ Check Your Understanding</h2>
+  <p class="lead">Click each question to reveal the answer.</p>
+  <details><summary>1. What is the difference between the frontend and the backend?</summary>The frontend is what the user sees and runs in the browser (Angular, React). The backend runs on a server, handles business logic and talks to the database (Spring Boot, Node.js).</details>
+  <details><summary>2. What does DNS do?</summary>It works like a phonebook: it converts a domain name like myshop.com into an IP address.</details>
+  <details><summary>3. Why do we need a load balancer?</summary>To spread users across several servers so none is overloaded, and to stop sending traffic to servers that have failed.</details>
+  <details><summary>4. What is the difference between a firewall and a WAF?</summary>A firewall checks where traffic comes from and which port it uses. A WAF looks inside web requests for attacks such as SQL injection.</details>
+  <details><summary>5. Why put slow tasks in a message queue?</summary>So the user gets a quick response while a worker does the slow task (like sending an email) in the background.</details>
+  <details><summary>6. What is a container, and what does Kubernetes do?</summary>A container packages an app with everything it needs. Kubernetes runs many containers, restarts failed ones and adds more when traffic grows.</details>
+  <details><summary>7. Name the three pillars of observability.</summary>Metrics (numbers), logs (written records) and traces (the path of one request).</details>
+  <details><summary>8. Why use two datacenters?</summary>For high availability. If one datacenter fails, users are automatically sent to the other.</details>
+  <details><summary>9. What is an SPA?</summary>A Single Page Application loads the page once and then updates only the data using JavaScript, making it fast and app-like.</details>
+  <details><summary>10. What should you always have before deploying to production?</summary>Tested code, a code review, monitoring in place and a rollback plan.</details>
+</section>
+
+</main>
+<footer>How a Web Application Works · System Design for Beginners · Product names are examples only, not recommendations</footer>
+</body>
+</html>
+
+							<script>
+                            	
+							</script>
+                        </body>
+                        </html>
+                    
